@@ -1,0 +1,22 @@
+name: Build iOS App
+on: push
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Build and Export IPA
+        uses: sparkfabrik/ios-build-action@v1
+        with:
+          project-path: ./YourApp.xcodeproj
+          scheme: YourScheme
+          export-method: ad-hoc # or development, app-store
+          certificate: ${{ secrets.DEV_CERTIFICATE }}
+          certificate-password: ${{ secrets.CERT_PASSWORD }}
+          provisioning-profile: ${{ secrets.PROVISIONING_PROFILE }}
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: app.ipa
+          path: "*.ipa"
