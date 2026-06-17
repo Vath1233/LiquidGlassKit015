@@ -1,0 +1,44 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [ "master" ] # Triggered when you push to master
+  workflow_dispatch:       # Allows you to manually run it from the GitHub website
+
+jobs:
+  build:
+    runs-on: macos-latest  # macOS is required to build iOS apps
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -switch /Applications/Xcode_16.1.app # You can change to latest stable version
+
+      - name: Build Archive (IPA)
+        run: |
+          xcodebuild clean archive \
+            -scheme "LiquidGlassKit" \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath ${{ runner.temp }}/LiquidGlassKit.xcarchive \
+            CODE_SIGNING_ALLOWED="NO" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED="NO"
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath ${{ runner.temp }}/LiquidGlassKit.xcarchive \
+            -exportPath ${{ runner.temp }}/IPA \
+            -exportOptionsPlist ExportOptions.plist \
+            CODE_SIGNING_ALLOWED="NO" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED="NO"
+
+      - name: Upload IPA to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: LiquidGlassKit-IPA
+          path: ${{ runner.temp }}/IPA/*.ipa
